@@ -12,13 +12,12 @@ using namespace std;
 struct Line {
     Point pt1, pt2;
 };
-
 void houghLinesCallback(int, void*);
 void on_mouse(int event, int x, int y, int flags, void* userdata);
 // 트랙바
 int rho_slider = 2;
 int theta_slider = 180;
-int threshold_slider = 108;
+int threshold_slider = 104;
 int start_x = -1;
 int start_y = -1;
 
@@ -29,6 +28,7 @@ vector<Line> linePoints;
 vector<vector<Line>> clusters;
 
 int main() {
+
     string PATH = "imgs/dot_base.png";
     img = imread(PATH);
     double rsizeNum = 1;
@@ -36,18 +36,22 @@ int main() {
 
     Mat gray;
     cvtColor(img, gray, COLOR_BGR2GRAY);
-    cv::GaussianBlur(gray, gray, cv::Size(7, 7), 0);
+    cv::GaussianBlur(gray, gray, cv::Size(5, 5), 0);
     cv::threshold(gray, gray, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
 
-    Canny(gray, edges, 50, 150);
+    Canny(gray, edges, 0, 0);
 
     namedWindow("Hough Lines");
     imshow("Hough Lines", img);
+
 
     // 트랙바 콜백함수 생성
     createTrackbar("Rho * 10", "Hough Lines", &rho_slider, 100, houghLinesCallback);
     createTrackbar("Theta", "Hough Lines", &theta_slider, 360, houghLinesCallback);
     createTrackbar("Threshold", "Hough Lines", &threshold_slider, 500, houghLinesCallback);
+    //시간측정
+
+
     waitKey(0);
 
     return 0;
@@ -141,12 +145,13 @@ void on_mouse(int event, int x, int y, int flags, void* userdata) {
         start_x = x;
         start_y = y;
         cout << x << "," << y << endl;
+        
+        //시간측정
 
-        std::chrono::steady_clock::time_point start, end;
 
         //x,y좌표를 기준으로 ROI
-        start = std::chrono::steady_clock::now();
         try {
+
             Mat img_ROI(edges, Rect(start_x - 170, start_y - 170, 340, 340 ));
 
 
@@ -156,12 +161,21 @@ void on_mouse(int event, int x, int y, int flags, void* userdata) {
 
             cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
 
+            std::chrono::steady_clock::time_point start, end;
+            start = std::chrono::steady_clock::now();
+
+            //가장 많이 프로세스 타임을 먹는 부분 .
             std::vector<cv::KeyPoint> keypoints;
             detector->detect(img_ROI, keypoints);
+            
+            end = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+            std::cout << std::format("{:.6f}s\n", duration);
 
             cv::Mat img_with_keypoints;
             cv::drawKeypoints(img_ROI, keypoints, img_with_keypoints,Scalar(0,255,0));
         //    cout << "keypoints size = " << keypoints.size() << endl;
+
             for (size_t i = 0; i < keypoints.size(); i++) {
 
                 keypoints[i].pt.x += start_x - 170;
@@ -172,16 +186,14 @@ void on_mouse(int event, int x, int y, int flags, void* userdata) {
                /* cout << "x = " << x << ", y = " << y << endl;*/
             }
 
+
              //SBD check part
-            cv::imshow("Keypoints", img_with_keypoints);
-            end = std::chrono::steady_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-            std::cout << std::format("{:.6f}s\n", duration);
-            cv::waitKey(0);
+       //     cv::imshow("Keypoints", img_with_keypoints);
+       //     cv::waitKey(0);
             
 
-
         }
+
         catch (...) {
             cerr << "ROI range error but pass" << endl;
         }
@@ -199,7 +211,7 @@ void on_mouse(int event, int x, int y, int flags, void* userdata) {
                 distances.push_back(make_pair(dist, cluster));
             }
         }
-
+        //가장 가까운라인 sort
         sort(distances.begin(), distances.end(), [](const pair<double, vector<Line>>& a, const pair<double, vector<Line>>& b) {
             return a.first < b.first;
             });
@@ -208,6 +220,7 @@ void on_mouse(int event, int x, int y, int flags, void* userdata) {
         vector<vector<Line>> closestLines;
         closestLines.push_back(distances[0].second);
         closestLines.push_back(distances[1].second);
+
 
         
         //for (const auto& cluster : closestLines) {
@@ -219,19 +232,42 @@ void on_mouse(int event, int x, int y, int flags, void* userdata) {
         //cout << "X1=" << closestLines[0][0].pt1.x << " Y1=" << closestLines[0][0].pt1.y << " X2=" << closestLines[0][0].pt2.x << " Y2=" << closestLines[0][0].pt2.y << endl;
         //cout << "X1=" << closestLines[1][0].pt1.x << " Y1=" << closestLines[1][0].pt1.y << " X2=" << closestLines[1][0].pt2.x << " Y2=" << closestLines[1][0].pt2.y << endl;
 
+
+        //가장 가까운 라인의 기울기를 구하고 
+        // 그 라인의 기울기와 수직인 기울기를 다시 구하고 .
+        // CP(Center Point) 기준으로 아래로탐색(일단
         float X1 = closestLines[0][0].pt1.x;
         float Y1 = closestLines[0][0].pt1.y;
         float X2 = closestLines[0][0].pt2.x;
         float Y2 = closestLines[0][0].pt2.y;
 
-        float m = (Y2 - Y1) / (Y2 - Y1);
-        
+        float m;
+        if (X2 - X1 != 0) {
+            m = -1.0 / ((Y2 - Y1) / (X2 - X1));
+        }
+        else {
+            m = std::numeric_limits<float>::infinity();
+
+        }
         //float eq_num = (m, x, y);
         //cout << eq_num << endl;
 
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
+
 
 
     }
