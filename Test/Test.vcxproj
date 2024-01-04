@@ -152,7 +152,7 @@
     <Image Include="..\..\imgsource\test90.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Main\BSBS.cpp" />
+    <ClCompile Include="video.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

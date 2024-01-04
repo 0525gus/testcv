@@ -13,25 +13,69 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="소스 파일\keypointDetectorList">
+      <UniqueIdentifier>{09657853-a7f3-41a3-abe0-5774b965e7ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Houghtest">
+      <UniqueIdentifier>{0602b0df-69ed-4c24-b412-82cfb8e0d65b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\INBOX">
+      <UniqueIdentifier>{25ed07f9-81ee-449b-9e18-cea48dc1a2a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\LBS">
+      <UniqueIdentifier>{501532d9-40b9-41db-8526-e052b823d038}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dot_detector_SBD.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="base.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="base_cluster.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="base_cluster_line.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="base_dot_SBD.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="warpPerspective.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="..\Test\TEST_keypoint_Detector_goodFeaturesToTrack.cpp">
+      <Filter>소스 파일\keypointDetectorList</Filter>
+    </ClCompile>
+    <ClCompile Include="TEST_keypoint_Detector_SURF.cpp">
+      <Filter>소스 파일\keypointDetectorList</Filter>
+    </ClCompile>
+    <ClCompile Include="TEST_keypoint_Detector_SIFT(INB).cpp">
+      <Filter>소스 파일\keypointDetectorList</Filter>
+    </ClCompile>
+    <ClCompile Include="TEST_HOUGH_CIRCLE.cpp">
+      <Filter>소스 파일\Houghtest</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Test\INBOX_base.cpp">
+      <Filter>소스 파일\INBOX</Filter>
+    </ClCompile>
+    <ClCompile Include="base_cluster_line.cpp">
+      <Filter>소스 파일\LBS</Filter>
+    </ClCompile>
+    <ClCompile Include="BSBS.cpp">
+      <Filter>소스 파일\LBS</Filter>
+    </ClCompile>
+    <ClCompile Include="TEST_dot_detector_SBD.cpp">
+      <Filter>소스 파일\LBS</Filter>
+    </ClCompile>
+    <ClCompile Include="TEST_HoughP_Line_Detector.cpp">
+      <Filter>소스 파일\LBS</Filter>
+    </ClCompile>
+    <ClCompile Include="TEST_VER1.cpp">
+      <Filter>소스 파일\LBS</Filter>
+    </ClCompile>
+    <ClCompile Include="TEST_INBOX_CODE.cpp">
+      <Filter>소스 파일\INBOX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Test\INDOT_detector.cpp">
+      <Filter>소스 파일\INBOX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Test\LBS_main.cpp">
+      <Filter>소스 파일\LBS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Test\test12.cpp">
+      <Filter>소스 파일\LBS</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST_keypoint_Detector_KAZE(INB).cpp">
+      <Filter>소스 파일\keypointDetectorList</Filter>
+    </None>
   </ItemGroup>
 </Project>

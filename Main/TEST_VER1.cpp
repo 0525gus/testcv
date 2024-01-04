@@ -56,6 +56,7 @@ int main() {
 }
 
 void houghLinesCallback(int, void*) {
+    //허프라인 프로세스 시간 체크할것....
     double rho = static_cast<double>(rho_slider) / 10.0;
     vector<Vec2f> lines;
     HoughLines(edges, lines, rho, CV_PI / (theta_slider), threshold_slider);
@@ -140,49 +141,54 @@ float eq(float& m, float& x, float& y, float& t) {
 }
 void on_mouse(int event, int x, int y, int flags, void* userdata) {
     if (event == EVENT_LBUTTONDOWN) {
+        cout << x << "," << y << endl;
         CP_x = x;
         CP_y = y;
         int ROI_COORD_VALUE = 170;
-        cout << x << "," << y << endl;
+        cout << "CP(" << x << "," << y << ")" << endl;
 
         //시간측정
         std::chrono::steady_clock::time_point start, end;
         start = std::chrono::steady_clock::now();
+        Mat v;
+        Mat img_ROI;
+        // x,y좌표를 기준으로 ROI -> 해당 Area 에서 detect
+        // -> ROI는 실제 카메라로 찍힌 단계 (이후 생략 가능)
         std::vector<cv::KeyPoint> keypoints;
-        //x,y좌표를 기준으로 ROI
         try {
-            Mat img_ROI(edges, Rect(CP_x - ROI_COORD_VALUE, CP_y - ROI_COORD_VALUE, 340, 340 ));
-
+            cv::Rect roi_rect(CP_x - ROI_COORD_VALUE, CP_y - ROI_COORD_VALUE, ROI_COORD_VALUE * 2, ROI_COORD_VALUE * 2);
+            edges(roi_rect).copyTo(img_ROI);
+            //Mat img_ROI(edges, Rect(CP_x - ROI_COORD_VALUE, CP_y - ROI_COORD_VALUE, ROI_COORD_VALUE * 2, ROI_COORD_VALUE * 2));
+            v = img_ROI.clone();
+            //SBD setting
             cv::SimpleBlobDetector::Params params;
             params.filterByArea = true;
-            params.minArea = 30; // 픽셀 수에 따라 조절
-
+            params.minArea = 25; // 픽셀 수에 따라 조절
             cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
-            //detector -> 
-            detector->detect(img_ROI, keypoints);
-            
+            detector->detect(img_ROI, keypoints); // ROI 에서 detect
+
+            //ROI Detected dot check code ~~
             cv::Mat img_with_keypoints;
-            cv::drawKeypoints(img_ROI, keypoints, img_with_keypoints,Scalar(0,255,0));
+            cv::drawKeypoints(img_ROI, keypoints, img_with_keypoints, Scalar(0, 255, 0));
             //cout << "keypoints size = " << keypoints.size() << endl;
 
             for (size_t i = 0; i < keypoints.size(); i++) {
 
+                //start 지점에 대한 대처-> ROI시 새롭게 0부터 시작하는 공간 마련함.
                 keypoints[i].pt.x += CP_x - 170;
                 keypoints[i].pt.y += CP_y - 170;
                 //float x = keypoints[i].pt.x;
                 //float y = keypoints[i].pt.y;
-
                 //cout << "x = " << x << ", y = " << y << endl;
             }
-
-             //SBD check part
+            //
             //cv::imshow("Keypoints", img_with_keypoints);
             //cv::waitKey(0);
+            //ROI Detected dot check code ~~
         }
         catch (...) {
             cerr << "ROI range error but pass" << endl;
         }
-        //waitKey(0);
 
         vector<pair<double, vector<Line>>> distances;
         for (const auto& cluster : clusters) {
@@ -196,77 +202,72 @@ void on_mouse(int event, int x, int y, int flags, void* userdata) {
             return a.first < b.first;
             });
 
-
         vector<vector<Line>> closestLines;
         closestLines.push_back(distances[0].second);
         closestLines.push_back(distances[1].second);
-        
+
+        // cluster 확인 함수
         //for (const auto& cluster : closestLines) {
         //    for (const auto& line : cluster) {
         //       cout << "Line from (" << line.pt1.x << "," << line.pt1.y << ") to (" << line.pt2.x << "," << line.pt2.y << ")" << endl;
         //    }
         //}
-        //equation
         //cout << "X1=" << closestLines[0][0].pt1.x << " Y1=" << closestLines[0][0].pt1.y << " X2=" << closestLines[0][0].pt2.x << " Y2=" << closestLines[0][0].pt2.y << endl;
         //cout << "X1=" << closestLines[1][0].pt1.x << " Y1=" << closestLines[1][0].pt1.y << " X2=" << closestLines[1][0].pt2.x << " Y2=" << closestLines[1][0].pt2.y << endl;
 
 
-        //가장 가까운 라인의 기울기를 구하고 
-        // 그 라인의 기울기와 수직인 기울기를 다시 구하고 .
-        // CP(Center Point) 기준으로 아래로탐색
-        // 점들 (x,y) , 탐색방향의 기울기, centerPoint 
         float X1 = closestLines[0][0].pt1.x;
         float Y1 = closestLines[0][0].pt1.y;
         float X2 = closestLines[0][0].pt2.x;
         float Y2 = closestLines[0][0].pt2.y;
 
-        //기울기 구함
+        //수직인 기울기 구함.
         float m;
-        if (X2 - X1 == 0 || X2 - X1 > 10000) {m = -10000;}
-        else if  (Y2 - Y1 == 0|| Y2-Y1 > 10000){ m = 10000;}
-        else {m = -1.0 / ((Y2 - Y1) / (X2 - X1));}
-        
-        //EQ 방정식
-        auto EQ = [](const auto &m, const auto &Base_x, const auto &Base_y, const auto & t) {
+        if (X2 - X1 == 0 || X2 - X1 > 10000) { m = -10000; }
+        else if (Y2 - Y1 == 0 || Y2 - Y1 > 10000) { m = 10000; }
+        else { m = -1.0 / ((Y2 - Y1) / (X2 - X1)); }
+        auto EQ = [](const auto& m, const auto& Base_x, const auto& Base_y, const auto& t) {
             return m * (Base_x - t) + Base_y;
             };
-
-        //cout << EQ(m,x,y,x)<< endl;
-
         //각 keypoints들 저장, 
-        // 이 case의 경우에 40 단위의 범위로 설정함.
-
+        // 이 케이스의 경우에 40 단위의 범위로 설정함.
         std::vector<cv::KeyPoint> selectedRangeDots;
-        for (const auto& key: keypoints) {
+        for (const auto& key : keypoints) {
             int a = EQ(m, CP_x, CP_y, key.pt.x);
-            if(m > 0){
+            if (m > 0) {
                 auto rear = EQ(m, CP_x, CP_y, key.pt.x - 40);
                 auto fore = EQ(m, CP_x, CP_y, key.pt.x + 40);
-                if (fore <= a && a <= rear&&key.pt.x-40<= CP_x&& CP_x<=key.pt.x+40 ) {
+                if (fore <= a && a <= rear && key.pt.x - 40 <= CP_x && CP_x <= key.pt.x + 40) {
                     selectedRangeDots.push_back(key);
                     //cout << "fore is " << fore << ", end is " << rear << " a is " << a << endl;
-                    cout << "x, y = (" << key.pt.x <<"," << key.pt.y << ")" << endl;
+                    //cout << "x, y = (" << key.pt.x << "," << key.pt.y << ")" << endl;
 
                 }
             }
             else if (m < 0) {
                 auto fore = EQ(m, CP_x, CP_y, key.pt.x + 40);
                 auto rear = EQ(m, CP_x, CP_y, key.pt.x - 40);
-                if (fore <= a && a <= rear) {
+                cout << fore << endl;
+                if (fore <= a && a <= rear && key.pt.x - 40 <= CP_x && CP_x <= key.pt.x + 40) {
                     selectedRangeDots.push_back(key);
                     //cout << "fore is " << fore << ", end is " << rear << " a is " << a << endl;
-                    cout << "x, y = (" << x << "," << y << ")" << endl;
+                    //cout << "x, y = (" << x << "," << y << ")" << endl;
 
                 }
             }
-
-
-            //
         }
-        Mat test = imread("imgs/te.png");
-        drawKeypoints(test, selectedRangeDots, test, Scalar(0, 255, 0));
-        imshow("test", test);
-        waitKey(0);
+        //selectedRangeDots 확인 
+
+        for (const auto& keys : selectedRangeDots) {
+            cout << keys.pt.x << "," << keys.pt.y << endl;
+
+        }
+        cv::Mat img_with_selected_dots = img_ROI.clone();
+        cv::drawKeypoints(img_ROI, selectedRangeDots, img_with_selected_dots, cv::Scalar(255, 0, 0), cv::DrawMatchesFlags::DEFAULT);
+        cv::imshow("Selected Dots", img_with_selected_dots);
+        cv::waitKey(0);
+
+
 
 
         //float eq_num = (m, x, y);
@@ -275,7 +276,7 @@ void on_mouse(int event, int x, int y, int flags, void* userdata) {
         end = std::chrono::steady_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
         std::cout << std::format("{:.6f}s\n", duration);
-        
+
 
 
 

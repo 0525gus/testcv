@@ -133,11 +133,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="base.cpp" />
-    <ClCompile Include="base_cluster.cpp" />
+    <ClCompile Include="..\Test\INBOX_base.cpp" />
+    <ClCompile Include="..\Test\INDOT_detector.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Test\LBS_main.cpp" />
+    <ClCompile Include="..\Test\test12.cpp" />
+    <ClCompile Include="..\Test\TEST_keypoint_Detector_goodFeaturesToTrack.cpp" />
     <ClCompile Include="base_cluster_line.cpp" />
-    <ClCompile Include="base_dot_SBD.cpp" />
-    <ClCompile Include="dot_detector_SBD.cpp" />
+    <ClCompile Include="BSBS.cpp" />
+    <ClCompile Include="TEST_dot_detector_SBD.cpp" />
+    <None Include="TEST_keypoint_Detector_KAZE(INB).cpp" />
+    <ClCompile Include="TEST_HoughP_Line_Detector.cpp" />
+    <ClCompile Include="TEST_INBOX_CODE.cpp" />
+    <ClCompile Include="TEST_keypoint_Detector_SIFT(INB).cpp" />
+    <ClCompile Include="TEST_keypoint_Detector_SURF.cpp" />
+    <ClCompile Include="TEST_VER1.cpp" />
+    <ClCompile Include="TEST_HOUGH_CIRCLE.cpp" />
     <ClCompile Include="warpPerspective.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

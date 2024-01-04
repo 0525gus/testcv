@@ -2,8 +2,6 @@
 #include "opencv2/opencv.hpp"
 
 cv::Mat src;
-
-
 cv::Point2f srcQuad[4], dstQuad[4]; //src 행렬과 dst 행렬 선언부분
 
 void on_mouse(int event, int x, int y, int flags, void* userdata)
